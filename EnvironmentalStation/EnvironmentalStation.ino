@@ -33,7 +33,7 @@ void setup() {
   // RTC
   rtc.begin();
   
-  if (!rtc.isRunning()) { // makes it so the date and time is only updated once
+  if (!rtc.isrunning()) { // makes it so the date and time is only updated once
     rtc.adjust(DateTime(__DATE__, __TIME__));
   }
 
@@ -52,9 +52,11 @@ void loop() {
 
   // Print humidity and temperature
   dht11.update();
-  int temperature = dht11.readCelsius();
+  float temperature = dht11.readCelsius();
   int humidity = dht11.readHumidity();
-  Serial.print("Temperature in C: " + temperature + '\t');
+  Serial.print("Temperature in C: ");
+  Serial.print(temperature);
+  Serial.print('\t');
   Serial.println("Humidity: " + humidity);
 
   // Print light level
