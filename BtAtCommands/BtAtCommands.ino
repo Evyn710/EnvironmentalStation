@@ -5,7 +5,7 @@ SoftwareSerial mySerial(51, 50);
 void setup() {
     Serial.begin(9600);
     Serial.println("Enter AT commands:");
-    mySerial.begin(9600);
+    mySerial.begin(38400);
 }
 
 void loop() {

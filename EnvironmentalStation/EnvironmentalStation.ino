@@ -9,16 +9,20 @@ DHT11 dht11(30);
 #define SOUND_DIGT_PIN 48
 #define SOUND_ANLG_PIN A14
 
-// Motion Sensor
-#define PIR_PIN 40
-
 // Real time clock
 #include <Wire.h>
 #include "RTClib.h"
 RTC_DS1307 rtc;
 
+// Water level sensor
+#define WTR_PIN A10
+
+// Bluetooth serial
+#include <SoftwareSerial.h>
+SoftwareSerial mySerial(51, 50);
+
 void setup() {
-  Serial.begin(38400);
+  mySerial.begin(38400);
 
   // Photoresistor
   pinMode(PHOTO_PIN, INPUT);
@@ -27,9 +31,6 @@ void setup() {
   pinMode(SOUND_DIGT_PIN, INPUT);
   pinMode(SOUND_ANLG_PIN, INPUT);
 
-  // Motion Sensor
-  pinMode(PIR_PIN, INPUT);
-
   // RTC
   rtc.begin();
   
@@ -37,46 +38,70 @@ void setup() {
     rtc.adjust(DateTime(__DATE__, __TIME__));
   }
 
+  // Water sensor
+  pinMode(WTR_PIN, INPUT);
+
+  
   delay(1000);
 }
 
 void loop() {
   // RTC getting time
   DateTime now = rtc.now();
-  Serial.print(now.hour(), DEC);
-  Serial.print(":");
-  Serial.print(now.minute(), DEC);
-  Serial.print(":");
-  Serial.print(now.second(), DEC);
-  Serial.println();
+  mySerial.print(now.hour(), DEC);
+  mySerial.print(":");
+  mySerial.print(now.minute(), DEC);
+  mySerial.print(":");
+  mySerial.print(now.second(), DEC);
+  mySerial.println();
 
   // Print humidity and temperature
   dht11.update();
   float temperature = dht11.readCelsius();
   int humidity = dht11.readHumidity();
-  Serial.print("Temperature in C: ");
-  Serial.print(temperature);
-  Serial.print('\t');
-  Serial.println("Humidity: " + humidity);
+  mySerial.print("Temperature in C: ");
+  mySerial.print(temperature);
+  mySerial.print("   ");
+  mySerial.print("Humidity: ");
+  mySerial.print(humidity);
+  mySerial.println('%');
 
   // Print light level
   float lightLevel = analogRead(PHOTO_PIN);
-  Serial.print("Light Level: ");
-  Serial.println(lightLevel);
+  mySerial.print("Light Level: ");
+  mySerial.println(lightLevel);
 
   // Print the noise level
-  float sound = analogRead(SOUND_ANLG_PIN);
-  Serial.print("Sound Level: ");
-  if (digitalRead(SOUND_DIGT_PIN) == HIGH) {
-    Serial.println("Too loud");
-  } else {
-    Serial.println(sound);
-  }
-
-  // Print the motion sensor output
-  if (digitalRead(PIR_PIN) == HIGH) {
-    Serial.println("Motion was detected");
+  int triggered = 0;
+  for (int i = 0; i < 100; i++) {
+      if(analogRead(SOUND_ANLG_PIN) > 23) {
+        triggered = 1;
+        break;
+      }
   }
   
+  mySerial.print("Noise sensor: ");
+  if (triggered) {
+    mySerial.println("Triggered");
+  } else {
+    mySerial.println("Not triggered");
+  }
+
+  // Print the water sensor output 
+  int level = analogRead(WTR_PIN);
+  mySerial.print("Water level: ");
+  if (level < 320 && level >= 20) {
+    mySerial.println("Wet");
+  } else if (level >= 320 && level < 350) {
+    mySerial.println("Low");
+  } else if (level >= 350 && level < 375) {
+    mySerial.println("Medium");
+  } else if (level >= 375) {
+    mySerial.println("High");
+  } else {
+    mySerial.println("Dry");
+  }
+
+  mySerial.println();
   delay(1000);
 }
