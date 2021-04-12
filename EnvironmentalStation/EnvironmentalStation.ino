@@ -1,3 +1,9 @@
+/*
+ * Project 4
+ * Environmental Sensing Station
+ * By: Evyn Rissling, Curtis Eck, Brandon Jones
+ */
+
 // DHT 11 Temp and Humidity Module
 #include <EduIntro.h>
 DHT11 dht11(30);
